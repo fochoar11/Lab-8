@@ -1,0 +1,25 @@
+void rutinaInicio(void)
+{
+    if (HAL_UART_Receive(&huart2, &rxData, 1, 10) == HAL_OK)
+    {
+        if (rxData == 'S')
+        {
+            semaforo = 0;
+
+            HAL_GPIO_WritePin(led9_GPIO_Port, led9_Pin, 1);
+            HAL_Delay(1000);
+            HAL_GPIO_WritePin(led9_GPIO_Port, led9_Pin, 0);
+
+            HAL_GPIO_WritePin(led10_GPIO_Port, led10_Pin, 1);
+            HAL_Delay(1000);
+            HAL_GPIO_WritePin(led10_GPIO_Port, led10_Pin, 0);
+
+            HAL_GPIO_WritePin(led11_GPIO_Port, led11_Pin, 1);
+            HAL_Delay(1000);
+            HAL_GPIO_WritePin(led11_GPIO_Port, led11_Pin, 0);
+
+            semaforo = 1;
+            HAL_UART_Transmit(&huart2, (uint8_t*)"Juego iniciado\n", 15, HAL_MAX_DELAY);
+        }
+    }
+}
