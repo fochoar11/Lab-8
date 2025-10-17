@@ -1,0 +1,117 @@
+/* USER CODE BEGIN PV */
+uint8_t semaforo = 0;
+uint8_t rxData = 0;
+volatile uint8_t jugador1 = 0;
+volatile uint8_t pausa = 0;
+volatile uint8_t jugador2 = 0;
+
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+
+    if (pausa == 0)
+    {
+        static uint32_t lastInterruptTime = 0;
+        uint32_t currentTime = HAL_GetTick();
+
+
+        if (currentTime - lastInterruptTime >= 50)
+        {
+            lastInterruptTime = currentTime;
+
+
+            if (jugador1 == 4 || jugador2 == 4)
+            {
+
+                HAL_NVIC_DisableIRQ(EXTI15_10_IRQn);
+                return;
+            }
+
+            if (GPIO_Pin == b1_Pin)
+            {
+                if (HAL_GPIO_ReadPin(b1_GPIO_Port, b1_Pin) == 1)
+                {
+                    jugador1++;
+                    if (jugador1 > 4)
+                        jugador1 = 0;
+                }
+            }
+            else if (GPIO_Pin == b2_Pin)
+            {
+                jugador2++;
+                if (jugador2 > 4)
+                    jugador2 = 0;
+            }
+        }
+    }
+}
+
+void verificarGanador(void)
+{
+    if (jugador1 == 4)
+    {
+
+        char mensaje[] = "Jugador 1 ha ganado\n";
+        HAL_UART_Transmit(&huart2, (uint8_t*)mensaje, strlen(mensaje), HAL_MAX_DELAY);
+        pausa = 1;
+    }
+    else if (jugador2 == 4)
+    {
+
+        char mensaje[] = "Jugador 2 ha ganado\n";
+        HAL_UART_Transmit(&huart2, (uint8_t*)mensaje, strlen(mensaje), HAL_MAX_DELAY);
+        pausa = 1;
+    }
+}
+/* USER CODE END PV */
+
+
+ /* Infinite loop */
+  /* USER CODE BEGIN WHILE */
+  while (1)
+  {
+	  if (HAL_UART_Receive(&huart2, &rxData, 1, 10) == HAL_OK)
+	      {
+	          if (rxData == 'S')
+	          {
+	              semaforo = 0;
+	              pausa = 1;
+
+	  	  	  	  HAL_GPIO_WritePin(led9_GPIO_Port, led9_Pin, 1);
+	              HAL_Delay(1000);
+	              HAL_GPIO_WritePin(led9_GPIO_Port, led9_Pin, 0);
+
+	              HAL_GPIO_WritePin(led10_GPIO_Port, led10_Pin, 1);
+	              HAL_Delay(1000);
+	              HAL_GPIO_WritePin(led10_GPIO_Port, led10_Pin, 0);
+
+	              HAL_GPIO_WritePin(led11_GPIO_Port, led11_Pin, 1);
+	              HAL_Delay(1000);
+	              HAL_GPIO_WritePin(led11_GPIO_Port, led11_Pin, 0);
+	              pausa = 0;
+	              jugador1 = 0;
+	              jugador2 = 0;
+	              semaforo = 0;
+
+	              HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
+	              HAL_UART_Transmit(&huart2, (uint8_t*)"Juego iniciado\n", 18, HAL_MAX_DELAY);
+	          }
+	      }
+	  	  	  	  verificarGanador();
+
+
+	  	  	HAL_GPIO_WritePin(led1_GPIO_Port, led1_Pin, (jugador1 >= 1) ? 1 : 0);
+	        HAL_GPIO_WritePin(led2_GPIO_Port, led2_Pin, (jugador1 >= 2) ? 1 : 0);
+	        HAL_GPIO_WritePin(led3_GPIO_Port, led3_Pin, (jugador1 >= 3) ? 1 : 0);
+	        HAL_GPIO_WritePin(led4_GPIO_Port, led4_Pin, (jugador1 >= 4) ? 1 : 0);
+
+	        HAL_GPIO_WritePin(led5_GPIO_Port, led5_Pin, (jugador2 >= 1) ? 1 : 0);
+	        HAL_GPIO_WritePin(led6_GPIO_Port, led6_Pin, (jugador2 >= 2) ? 1 : 0);
+	        HAL_GPIO_WritePin(led7_GPIO_Port, led7_Pin, (jugador2 >= 3) ? 1 : 0);
+	        HAL_GPIO_WritePin(led8_GPIO_Port, led8_Pin, (jugador2 >= 4) ? 1 : 0);
+
+  }
+}
+
+
+
+    /* USER CODE END WHILE */
