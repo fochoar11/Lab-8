@@ -1,0 +1,32 @@
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+    if (pausa == 0 && semaforo == 1)
+    {
+        static uint32_t lastInterruptTime = 0;
+        uint32_t currentTime = HAL_GetTick();
+
+        if (currentTime - lastInterruptTime >= 50)
+        {
+            lastInterruptTime = currentTime;
+
+            if (jugador1 == 4 || jugador2 == 4)
+            {
+                HAL_NVIC_DisableIRQ(EXTI15_10_IRQn);
+                return;
+            }
+
+            if (GPIO_Pin == b2_Pin)
+            {
+                if (HAL_GPIO_ReadPin(b2_GPIO_Port, b2_Pin) == 1)
+                {
+                    if (jugador2 < 4)
+                    {
+                        jugador2++;
+                    }
+                    if (jugador2 > 4)
+                        jugador2 = 0;
+                }
+            }
+        }
+    }
+}
